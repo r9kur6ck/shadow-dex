@@ -1,0 +1,226 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 15, 15, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 40px;
+}
+
+.modal {
+    width: 100%;
+    max-width: 800px;
+    height: 100%;
+    max-height: 85vh;
+    background: var(--bg-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    height: 48px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.iconBtn {
+    padding: 6px;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iconBtn:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+}
+
+.iconBtn.danger:hover {
+    color: var(--danger-color);
+    background: rgba(235, 87, 87, 0.1);
+}
+
+.body {
+    flex: 1;
+    padding: 32px 64px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.titleInput {
+    font-size: 40px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+.titleInput::placeholder {
+    color: #d3d3d3;
+}
+
+.metaRow {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.metaLabel {
+    width: 120px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.select,
+.tagInput {
+    flex: 1;
+    font-size: 14px;
+    padding: 6px 8px;
+    border-radius: 4px;
+}
+
+.select:hover,
+.tagInput:hover {
+    background: var(--hover-bg);
+}
+
+.contentInput {
+    flex: 1;
+    margin-top: 24px;
+    font-size: 16px;
+    line-height: 1.6;
+    resize: none;
+    width: 100%;
+    min-height: 200px;
+}
+
+.contentInput::placeholder {
+    color: var(--border-color);
+}
+
+.footer {
+    padding: 16px 64px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.primaryBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-weight: 500;
+}
+
+.primaryBtn:hover {
+    background: var(--primary-hover);
+}
+
+/* --------------------
+ * Responsive for Mobile 
+ * -------------------- */
+@media (max-width: 768px) {
+    .overlay {
+        padding: 0;
+        align-items: flex-end;
+        /* Align to bottom, or stretch full screen */
+    }
+
+    .modal {
+        max-height: 100dvh;
+        height: 100dvh;
+        border-radius: 0;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .body {
+        padding: 20px 16px;
+    }
+
+    .titleInput {
+        font-size: 28px;
+        margin-bottom: 24px;
+    }
+
+    .metaRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        margin-bottom: 16px;
+    }
+
+    .metaLabel {
+        width: 100%;
+        margin-bottom: 2px;
+        font-size: 12px;
+    }
+
+    .select,
+    .tagInput {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 16px;
+        /* Prevents iOS auto-zoom */
+        background: var(--sidebar-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .footer {
+        padding: 12px 16px;
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+    }
+
+    .primaryBtn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        font-size: 16px;
+    }
+}

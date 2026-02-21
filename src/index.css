@@ -1,0 +1,98 @@
+:root {
+  color-scheme: light dark;
+  --bg-color: #ffffff;
+  --text-color: #37352f;
+  --text-muted: #787774;
+  --border-color: #e9e9e7;
+  --hover-bg: #f1f1ef;
+  --sidebar-bg: #f7f6f3;
+  --sidebar-hover: #ebebeb;
+  --primary-color: #2383e2;
+  --primary-hover: #1e70c1;
+  --danger-color: #eb5757;
+  --danger-hover: #c94a4a;
+  --radius: 6px;
+  --shadow-sm: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 2px 4px;
+  --shadow-md: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #191919;
+    --text-color: #d4d4d4;
+    --text-muted: #9b9a97;
+    --border-color: #2f2f2f;
+    --hover-bg: #2c2c2c;
+    --sidebar-bg: #202020;
+    --sidebar-hover: #292929;
+    --primary-color: #2eaadc;
+    --primary-hover: #258cb5;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  overflow: hidden;
+  /* App takes full screen */
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  color: inherit;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* Chrome等のブラウザのオートフィル（自動補完）時の背景色をテーマに合わせる */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--bg-color) inset !important;
+  -webkit-text-fill-color: var(--text-color) !important;
+}
+
+/* セレクトボックスのドロップダウンメニューの背景 */
+select option {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* App root sizing */
+#root {
+  width: 100vw;
+  height: 100dvh;
+  display: flex;
+}

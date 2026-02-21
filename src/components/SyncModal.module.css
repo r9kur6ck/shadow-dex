@@ -1,0 +1,189 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 15, 15, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+}
+
+.modal {
+    width: 100%;
+    max-width: 500px;
+    background: var(--bg-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    height: 54px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.closeBtn {
+    padding: 6px;
+    border-radius: var(--radius);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.closeBtn:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--sidebar-bg);
+}
+
+.tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+}
+
+.tab:hover {
+    background: var(--sidebar-hover);
+}
+
+.activeTab {
+    color: var(--text-color);
+    border-bottom-color: var(--primary-color);
+    background: var(--bg-color);
+}
+
+.tabContent {
+    padding: 24px;
+}
+
+.hostView,
+.guestView,
+.activeSyncView {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.activeSyncView {
+    padding: 40px 24px;
+}
+
+.instruction {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.primaryBtn {
+    background: var(--primary-color);
+    color: white;
+    padding: 10px 24px;
+    border-radius: var(--radius);
+    font-weight: 500;
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+.primaryBtn:hover {
+    background: var(--primary-hover);
+}
+
+.scannerWrapper {
+    width: 100%;
+    max-width: 320px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.qrContainer {
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.qrHint {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #666;
+    /* Keep text readable against white BG of QR */
+    font-weight: 500;
+}
+
+.status {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.success {
+    color: #27ae60;
+}
+
+.error {
+    color: var(--danger-color);
+}

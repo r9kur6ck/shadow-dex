@@ -1,0 +1,4 @@
+﻿src/components/Layout.tsx(34,17): error TS2322: Type '{ categoryFilter: string | null; onSelectCategory: Dispatch<SetStateAction<string | null>>; onNewEntry: () => void; onOpenSync: () => void; }' is not assignable to type 'IntrinsicAttributes & SidebarProps'.
+  Property 'onOpenSync' does not exist on type 'IntrinsicAttributes & SidebarProps'.
+src/components/Sidebar.tsx(3,34): error TS6133: 'Monitor' is declared but its value is never read.
+src/components/Sidebar.tsx(3,43): error TS6133: 'Smartphone' is declared but its value is never read.

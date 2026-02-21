@@ -1,0 +1,28 @@
+.wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+    background: var(--hover-bg);
+    border-radius: var(--radius);
+    padding: 6px 12px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.wrapper:focus-within {
+    background: var(--bg-color);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+}
+
+.icon {
+    color: var(--text-muted);
+    margin-right: 8px;
+}
+
+.input {
+    flex: 1;
+    font-size: 14px;
+    width: 100%;
+}
