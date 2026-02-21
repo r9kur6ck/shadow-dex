@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './Sidebar.module.css';
-import { Book, Plus, Monitor, Smartphone, X, Settings } from 'lucide-react';
+import { Book, Plus, Monitor, Smartphone, X, Settings, HelpCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
@@ -12,11 +12,12 @@ interface SidebarProps {
     onNewEntry: () => void;
     onOpenSync: () => void;
     onOpenSettings: () => void;
+    onOpenHelp: () => void;
     isOpen?: boolean;
     onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onNewEntry, onOpenSync, onOpenSettings, isOpen, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onNewEntry, onOpenSync, onOpenSettings, onOpenHelp, isOpen, onClose }) => {
     const categories = useLiveQuery(() => db.categories.toArray()) || [];
 
     return (
@@ -62,6 +63,10 @@ const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onN
             </div>
 
             <div className={styles.footer}>
+                <button className={styles.syncBtn} onClick={onOpenHelp}>
+                    <HelpCircle size={18} className={styles.icon} />
+                    <span>使い方 / ヘルプ</span>
+                </button>
                 <button className={styles.syncBtn} onClick={onOpenSettings}>
                     <Settings size={18} className={styles.icon} />
                     <span>設定 / バックアップ</span>

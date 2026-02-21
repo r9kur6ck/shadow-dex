@@ -6,6 +6,7 @@ import SearchBar from './SearchBar';
 import EntryEditor from './EntryEditor';
 import SyncModal from './SyncModal';
 import SettingsModal from './SettingsModal';
+import HelpModal from './HelpModal';
 import { Menu } from 'lucide-react';
 const Layout: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +19,7 @@ const Layout: React.FC = () => {
 
     const [isSyncOpen, setIsSyncOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
 
     const handleOpenEditor = (id?: string) => {
         setSelectedEntryId(id || null);
@@ -47,6 +49,10 @@ const Layout: React.FC = () => {
                 }}
                 onOpenSettings={() => {
                     setIsSettingsOpen(true);
+                    setIsSidebarOpen(false);
+                }}
+                onOpenHelp={() => {
+                    setIsHelpOpen(true);
                     setIsSidebarOpen(false);
                 }}
                 isOpen={isSidebarOpen}
@@ -89,6 +95,10 @@ const Layout: React.FC = () => {
 
             {isSettingsOpen && (
                 <SettingsModal onClose={() => setIsSettingsOpen(false)} />
+            )}
+
+            {isHelpOpen && (
+                <HelpModal onClose={() => setIsHelpOpen(false)} />
             )}
         </div>
     );
