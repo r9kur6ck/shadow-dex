@@ -5,15 +5,20 @@
     max-width: 480px;
     background: var(--hover-bg);
     border-radius: var(--radius);
-    padding: 6px 12px;
+    padding: 8px 16px;
     border: 1px solid transparent;
-    transition: border-color 0.2s, background 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wrapper:hover {
+    background: var(--border-color);
 }
 
 .wrapper:focus-within {
-    background: var(--bg-color);
+    background: var(--bg-surface);
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(35, 131, 226, 0.1);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-1px);
 }
 
 .icon {

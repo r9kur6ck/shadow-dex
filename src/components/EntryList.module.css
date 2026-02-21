@@ -11,28 +11,37 @@
 
 .empty {
     color: var(--text-muted);
-    padding: 60px 0;
+    padding: 80px 0;
+    /* Increase padding for more breathing room */
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
 .emptyIcon {
-    color: var(--border-color);
-    margin-bottom: 16px;
+    color: var(--primary-color);
+    margin-bottom: 24px;
+    background: rgba(59, 130, 246, 0.1);
+    /* Subtle blue tint background */
+    padding: 24px;
+    border-radius: 50%;
+    box-shadow: var(--shadow-sm);
 }
 
 .empty p {
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 18px;
+    /* Larger */
+    font-weight: 600;
+    color: var(--text-color);
 }
 
 .emptySub {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--text-muted);
     font-weight: 400;
-    margin-top: 8px;
+    margin-top: 12px;
 }
 
 .list {
@@ -45,14 +54,18 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     padding: 16px;
-    background: var(--bg-color);
+    background: var(--bg-surface);
+    /* Use the slightly lighter surface color in dark mode */
     cursor: pointer;
-    transition: box-shadow 0.2s ease, transform 0.1s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
 }
 
 .card:hover {
-    box-shadow: var(--shadow-sm);
-    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: rgba(59, 130, 246, 0.3);
+    /* Subtle primary border on hover */
 }
 
 .cardHeader {
@@ -79,6 +92,7 @@
     color: var(--text-muted);
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 12px;

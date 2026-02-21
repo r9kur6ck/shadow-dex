@@ -20,6 +20,28 @@
     align-items: center;
     padding: 0 20px;
     border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* すりガラス効果 */
+    background: rgba(var(--bg-color-rgb, 255, 255, 255), 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* fallback in case rgb variables aren't defined */
+@media (prefers-color-scheme: dark) {
+    .header {
+        background: rgba(15, 23, 42, 0.75);
+        /* slate-900 with opacity */
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    .header {
+        background: rgba(250, 250, 250, 0.75);
+        /* zinc-50 with opacity */
+    }
 }
 
 .content {

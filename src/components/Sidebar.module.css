@@ -121,31 +121,37 @@
     justify-content: center;
     font-weight: 500;
     font-size: 13px;
-    transition: background 0.1s ease;
-    border: 1px solid var(--border-color);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    /* Remove heavy border, keep space for hover consistency if needed, or entirely remove */
     gap: 6px;
 }
 
 .syncBtn:hover {
-    background: var(--sidebar-hover);
+    background: var(--hover-bg);
 }
 
 .newBtn {
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 8px;
+    padding: 10px;
+    /* Slightly more padding for prominence */
     border-radius: var(--radius);
-    background: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     justify-content: center;
-    font-weight: 500;
+    font-weight: 600;
+    /* Bolder */
     font-size: 14px;
-    transition: background 0.1s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
 }
 
 .newBtn:hover {
-    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+    filter: brightness(1.1);
 }
 
 .newBtn svg {
