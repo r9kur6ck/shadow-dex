@@ -31,9 +31,22 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ]
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5000000 // Raise the limit to 5MB for BlockNote chunks
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'blocknote': ['@blocknote/core', '@blocknote/react', '@blocknote/mantine'],
+          'vendor': ['react', 'react-dom', 'dexie', 'dexie-react-hooks']
+        }
+      }
+    }
+  },
   server: {
     host: true
   }
