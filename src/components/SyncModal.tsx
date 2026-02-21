@@ -36,10 +36,11 @@ const SyncModal: React.FC<SyncModalProps> = ({ onClose }) => {
             setErrorMsg('');
             const id = await syncManagerRef.current.startHosting();
             setHostId(id);
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
             setSyncState('error');
-            setErrorMsg(e.message || 'ホストの開始に失敗しました');
+            const errorMessage = e instanceof Error ? e.message : 'ホストの開始に失敗しました';
+            setErrorMsg(errorMessage);
         }
     };
 

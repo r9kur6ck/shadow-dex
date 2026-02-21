@@ -105,9 +105,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                         const decryptedStr = bytes.toString(CryptoJS.enc.Utf8);
                         if (!decryptedStr) throw new Error('復号化された文字列が空です。パスワードが間違っている可能性があります。');
                         data = JSON.parse(decryptedStr);
-                    } catch (err: any) {
+                    } catch (err: unknown) {
                         console.error('Decryption error:', err);
-                        alert(`復号化に失敗しました。\nエラー詳細: ${err.message || 'パスワードが間違っているか、ファイルが破損しています。'}`);
+                        const errorMessage = err instanceof Error ? err.message : 'パスワードが間違っているか、ファイルが破損しています。';
+                        alert(`復号化に失敗しました。\nエラー詳細: ${errorMessage}`);
                         if (fileInputRef.current) fileInputRef.current.value = '';
                         return;
                     }

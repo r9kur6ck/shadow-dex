@@ -1,15 +1,29 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import styles from './EntryList.module.css';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
 import { format } from 'date-fns';
 import { FileText } from 'lucide-react';
+import type { Entry } from '../db/db';
 
 interface EntryListProps {
     searchQuery: string;
     categoryFilter: string | null;
     onSelectEntry: (id: string) => void;
 }
+
+const EMPTY_ENTRIES: Entry[] = [];
+
+const getPreviewText = (content: string) => {
+    if (!content) return '';
+    // Strip markdown links and image tags, keeping the display text
+    let text = content.replace(/!?\[(.*?)\]\(.*?\)/g, '$1');
+    // Remove basic markdown syntax (headings, bold, italic, lists, quotes, code)
+    text = text.replace(/[#*`~>-]/g, '');
+    // Normalize line breaks and multiple spaces to a single space
+    text = text.replace(/\s+/g, ' ').trim();
+    return text.length > 150 ? text.substring(0, 150) + '...' : text;
+};
 
 const EntryList: React.FC<EntryListProps> = ({ searchQuery, categoryFilter, onSelectEntry }) => {
     const entries = useLiveQuery(
@@ -20,23 +34,25 @@ const EntryList: React.FC<EntryListProps> = ({ searchQuery, categoryFilter, onSe
             );
         },
         []
-    ) || [];
+    ) || EMPTY_ENTRIES;
 
-    const filteredEntries = entries.filter(entry => {
-        // Category filter
-        if (categoryFilter && entry.category !== categoryFilter) return false;
+    const filteredEntries = useMemo(() => {
+        return entries.filter(entry => {
+            // Category filter
+            if (categoryFilter && entry.category !== categoryFilter) return false;
 
-        // Search query filter (title, content, tags)
-        if (searchQuery) {
-            const q = searchQuery.toLowerCase();
-            const inTitle = entry.title.toLowerCase().includes(q);
-            const inContent = entry.content.toLowerCase().includes(q);
-            const inTags = entry.tags.some(t => t.toLowerCase().includes(q));
-            if (!inTitle && !inContent && !inTags) return false;
-        }
+            // Search query filter (title, content, tags)
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const inTitle = entry.title.toLowerCase().includes(q);
+                const inContent = entry.content.toLowerCase().includes(q);
+                const inTags = entry.tags.some(t => t.toLowerCase().includes(q));
+                if (!inTitle && !inContent && !inTags) return false;
+            }
 
-        return true;
-    });
+            return true;
+        });
+    }, [entries, categoryFilter, searchQuery]);
 
     return (
         <div className={styles.container}>
@@ -57,7 +73,7 @@ const EntryList: React.FC<EntryListProps> = ({ searchQuery, categoryFilter, onSe
                                 <h3 className={styles.cardTitle}>{entry.title}</h3>
                             </div>
                             <div className={styles.cardPreview}>
-                                {entry.content.substring(0, 150)}{entry.content.length > 150 ? '...' : ''}
+                                {getPreviewText(entry.content)}
                             </div>
                             <div className={styles.cardMeta}>
                                 <span className={styles.badge}>{entry.category}</span>

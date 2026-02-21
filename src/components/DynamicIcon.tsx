@@ -7,7 +7,7 @@ interface DynamicIconProps extends LucideIcons.LucideProps {
 }
 
 const DynamicIcon: React.FC<DynamicIconProps> = ({ name, ...props }) => {
-    // @ts-ignore - Lucide icons exist on the module but TS doesn't know exact keys
+    // @ts-expect-error - Lucide icons exist on the module but TS doesn't know exact keys
     const Icon = LucideIcons[name] || HelpCircle;
 
     return <Icon {...props} />;

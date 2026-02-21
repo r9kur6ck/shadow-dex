@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import styles from './Layout.module.css';
 import EntryList from './EntryList';
@@ -30,6 +30,18 @@ const Layout: React.FC = () => {
         setIsEditorOpen(false);
         setSelectedEntryId(null);
     };
+
+    useEffect(() => {
+        const handleOpenEntryEvent = (e: Event) => {
+            const customEvent = e as CustomEvent<{ id: string }>;
+            if (customEvent.detail && customEvent.detail.id) {
+                handleOpenEditor(customEvent.detail.id);
+            }
+        };
+
+        window.addEventListener('open-entry', handleOpenEntryEvent);
+        return () => window.removeEventListener('open-entry', handleOpenEntryEvent);
+    }, []);
 
     return (
         <div className={styles.layout}>
@@ -84,6 +96,7 @@ const Layout: React.FC = () => {
 
             {isEditorOpen && (
                 <EntryEditor
+                    key={selectedEntryId || 'new'}
                     entryId={selectedEntryId}
                     onClose={handleCloseEditor}
                 />
