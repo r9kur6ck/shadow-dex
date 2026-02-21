@@ -115,18 +115,42 @@
     background: var(--hover-bg);
 }
 
-.contentInput {
+.editorContainer {
     flex: 1;
     margin-top: 24px;
-    font-size: 16px;
-    line-height: 1.6;
-    resize: none;
     width: 100%;
     min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
 }
 
-.contentInput::placeholder {
-    color: var(--border-color);
+/* BlockNote 用のスタイル調整 */
+.editorContainer>div {
+    flex: 1;
+    /* Use Notion-like padding roughly */
+    padding: 0;
+}
+
+/* Base override for mantine styles */
+.editorContainer .mantine-Editor-root {
+    font-family: inherit;
+}
+
+/* ダークモード対策：カスタム変数を BlockNote に引き渡すための簡易オーバーライド */
+@media (prefers-color-scheme: dark) {
+    .editorContainer {
+        --bn-colors-editor-background: var(--bg-color);
+        --bn-colors-editor-text: var(--text-color);
+        --bn-colors-menu-background: var(--bg-surface, #2f2f2f);
+        --bn-colors-menu-text: var(--text-color);
+        --bn-colors-tooltip-background: #191919;
+        --bn-colors-tooltip-text: #fff;
+        --bn-colors-hovered-text-background: var(--hover-bg);
+        --bn-colors-selected-text-background: rgba(46, 170, 220, 0.2);
+        --bn-colors-basic-marks-background: var(--hover-bg);
+        --bn-colors-basic-marks-text: var(--text-color);
+    }
 }
 
 .footer {

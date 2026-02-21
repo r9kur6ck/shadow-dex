@@ -56,7 +56,9 @@ const EntryList: React.FC<EntryListProps> = ({ searchQuery, categoryFilter, onSe
                                 <FileText size={18} className={styles.cardIcon} />
                                 <h3 className={styles.cardTitle}>{entry.title}</h3>
                             </div>
-                            <p className={styles.cardPreview}>{entry.content}</p>
+                            <div className={styles.cardPreview}>
+                                {entry.content.substring(0, 150)}{entry.content.length > 150 ? '...' : ''}
+                            </div>
                             <div className={styles.cardMeta}>
                                 <span className={styles.badge}>{entry.category}</span>
                                 <span className={styles.date}>{format(entry.updatedAt, 'yy/MM/dd HH:mm')}</span>

@@ -4,6 +4,9 @@ import styles from './EntryEditor.module.css';
 import { db } from '../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { v4 as uuidv4 } from 'uuid';
+import { useCreateBlockNote } from '@blocknote/react';
+import { BlockNoteView } from '@blocknote/mantine';
+import '@blocknote/mantine/style.css';
 
 interface EntryEditorProps {
     entryId?: string | null;
@@ -17,9 +20,13 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
     const [tagsStr, setTagsStr] = useState('');
     const [content, setContent] = useState('');
 
+    const [initialContent, setInitialContent] = useState('');
+    const [isLoaded, setIsLoaded] = useState(false);
+
     useEffect(() => {
         if (!entryId && categories.length > 0 && !category) {
             setCategory(categories[0].name);
+            setIsLoaded(true);
         }
     }, [categories, entryId, category]);
 
@@ -31,10 +38,31 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                     setCategory(entry.category);
                     setTagsStr(entry.tags.join(', '));
                     setContent(entry.content);
+                    setInitialContent(entry.content);
                 }
+                setIsLoaded(true);
             });
         }
     }, [entryId]);
+
+    // Create the editor instance. We wait for `isLoaded` to ensure we have the correct 
+    // initialContent before instantiating, to avoid empty editors on edit.
+    const editor = useCreateBlockNote({
+        initialContent: isLoaded && initialContent ? undefined : undefined,
+    });
+
+    // Since initialContent must be set asynchronously when editing, we load it into the editor once it's ready
+    useEffect(() => {
+        async function loadMarkdown() {
+            if (isLoaded && editor) {
+                if (initialContent) {
+                    const blocks = await editor.tryParseMarkdownToBlocks(initialContent);
+                    editor.replaceBlocks(editor.document, blocks);
+                }
+            }
+        }
+        loadMarkdown();
+    }, [isLoaded, initialContent, editor]);
 
     const handleSave = async () => {
         if (!title.trim()) return;
@@ -119,12 +147,18 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                         />
                     </div>
 
-                    <textarea
-                        className={styles.contentInput}
-                        placeholder="詳細メモ..."
-                        value={content}
-                        onChange={e => setContent(e.target.value)}
-                    />
+                    <div className={styles.editorContainer}>
+                        {isLoaded && editor && (
+                            <BlockNoteView
+                                editor={editor}
+                                theme="light" /* will be overridden by CSS variables if needed */
+                                onChange={async () => {
+                                    const markdown = await editor.blocksToMarkdownLossy(editor.document);
+                                    setContent(markdown);
+                                }}
+                            />
+                        )}
+                    </div>
                 </div>
 
                 <div className={styles.footer}>
