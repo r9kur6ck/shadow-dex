@@ -7,7 +7,7 @@ import EntryEditor from './EntryEditor';
 import SyncModal from './SyncModal';
 import SettingsModal from './SettingsModal';
 import HelpModal from './HelpModal';
-import { Menu } from 'lucide-react';
+import { Menu, Plus } from 'lucide-react';
 const Layout: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
@@ -92,6 +92,13 @@ const Layout: React.FC = () => {
                         onSelectEntry={(id) => handleOpenEditor(id)}
                     />
                 </div>
+                <button
+                    className={styles.fab}
+                    onClick={() => handleOpenEditor()}
+                    aria-label="新規作成"
+                >
+                    <Plus size={24} />
+                </button>
             </main>
 
             {isEditorOpen && (

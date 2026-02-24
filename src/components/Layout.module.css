@@ -69,6 +69,10 @@
     display: none;
 }
 
+.fab {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .menuButton {
         display: flex;
@@ -90,5 +94,29 @@
         background-color: rgba(0, 0, 0, 0.4);
         z-index: 40;
         backdrop-filter: blur(2px);
+    }
+
+    .fab {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        z-index: 30;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .fab:active {
+        transform: scale(0.95);
+        background-color: var(--primary-hover);
     }
 }
