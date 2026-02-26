@@ -170,11 +170,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         if (!editName.trim()) return;
 
         if (isCreating) {
+            const maxOrder = categories.reduce((max, c) => Math.max(max, c.sortOrder ?? 0), -1);
             await db.categories.add({
                 id: uuidv4(),
                 name: editName.trim(),
                 icon: editIcon,
-                color: '#6B7280' // default color
+                color: '#6B7280', // default color
+                sortOrder: maxOrder + 1
             });
         } else if (editingCatId) {
             await db.categories.update(editingCatId, {

@@ -92,6 +92,19 @@
     font-weight: 500;
 }
 
+.navItem[draggable="true"] {
+    cursor: grab;
+}
+
+.navItem[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.dragOver {
+    border-top: 2px solid var(--primary-color);
+    padding-top: 4px;
+}
+
 .icon {
     margin-right: 8px;
     color: var(--text-muted);

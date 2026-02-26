@@ -16,6 +16,7 @@ export interface Category {
   icon: string; // The Lucide icon name, e.g. 'User', 'Book'
   color: string;
   isDefault?: boolean; // Protect "その他" and default categories from deletion if we want
+  sortOrder: number;
 }
 
 // Available preset icons
@@ -31,10 +32,10 @@ export const PRESET_ICONS = [
 ] as const;
 
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'cat-1', name: '人物メモ', icon: 'User', color: '#4F46E5', isDefault: true },
-  { id: 'cat-2', name: '社内用語', icon: 'Book', color: '#10B981', isDefault: true },
-  { id: 'cat-3', name: 'ローカルルール', icon: 'Hash', color: '#F59E0B', isDefault: true },
-  { id: 'cat-4', name: 'その他', icon: 'Hash', color: '#6B7280', isDefault: true },
+  { id: 'cat-1', name: '人物メモ', icon: 'User', color: '#4F46E5', isDefault: true, sortOrder: 0 },
+  { id: 'cat-2', name: '社内用語', icon: 'Book', color: '#10B981', isDefault: true, sortOrder: 1 },
+  { id: 'cat-3', name: 'ローカルルール', icon: 'Hash', color: '#F59E0B', isDefault: true, sortOrder: 2 },
+  { id: 'cat-4', name: 'その他', icon: 'Hash', color: '#6B7280', isDefault: true, sortOrder: 3 },
 ];
 
 const db = new Dexie('ShadowDexDB') as Dexie & {
@@ -53,12 +54,22 @@ db.version(2).stores({
   entries: 'id, title, category, *tags, createdAt, updatedAt',
   categories: 'id, name, icon'
 }).upgrade(tx => {
-  // Migration logic if necessary (e.g., adding default icon to existing categories)
   return tx.table('categories').toCollection().modify(category => {
     if (!category.icon) {
       category.icon = 'Hash';
     }
   });
+});
+
+// Version 3 Schema (Added sortOrder for category reordering)
+db.version(3).stores({
+  entries: 'id, title, category, *tags, createdAt, updatedAt',
+  categories: 'id, name, icon, sortOrder'
+}).upgrade(async tx => {
+  const categories = await tx.table('categories').toArray();
+  for (let i = 0; i < categories.length; i++) {
+    await tx.table('categories').update(categories[i].id, { sortOrder: i });
+  }
 });
 
 // Populate default categories on first db creation

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import styles from './Sidebar.module.css';
 import { Book, Plus, Monitor, Smartphone, X, Settings, HelpCircle } from 'lucide-react';
 import clsx from 'clsx';
@@ -18,7 +18,62 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onNewEntry, onOpenSync, onOpenSettings, onOpenHelp, isOpen, onClose }) => {
-    const categories = useLiveQuery(() => db.categories.toArray()) || [];
+    const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray()) || [];
+
+    // Drag & Drop state
+    const [dragIndex, setDragIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+        setDragIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+        // Make the drag image slightly transparent
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.style.opacity = '0.5';
+        }
+    }, []);
+
+    const handleDragEnd = useCallback((e: React.DragEvent) => {
+        if (e.currentTarget instanceof HTMLElement) {
+            e.currentTarget.style.opacity = '1';
+        }
+        setDragIndex(null);
+        setDragOverIndex(null);
+    }, []);
+
+    const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        setDragOverIndex(index);
+    }, []);
+
+    const handleDragLeave = useCallback(() => {
+        setDragOverIndex(null);
+    }, []);
+
+    const handleDrop = useCallback(async (e: React.DragEvent, dropIndex: number) => {
+        e.preventDefault();
+        if (dragIndex === null || dragIndex === dropIndex) {
+            setDragIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+
+        // Reorder the categories
+        const reordered = [...categories];
+        const [movedItem] = reordered.splice(dragIndex, 1);
+        reordered.splice(dropIndex, 0, movedItem);
+
+        // Update sortOrder in DB
+        await db.transaction('rw', db.categories, async () => {
+            for (let i = 0; i < reordered.length; i++) {
+                await db.categories.update(reordered[i].id, { sortOrder: i });
+            }
+        });
+
+        setDragIndex(null);
+        setDragOverIndex(null);
+    }, [dragIndex, categories]);
 
     return (
         <aside className={clsx(styles.sidebar, isOpen && styles.open)}>
@@ -50,11 +105,21 @@ const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onN
                     </button>
                 </div>
 
-                {categories.map(cat => (
+                {categories.map((cat, index) => (
                     <div
                         key={cat.id}
-                        className={clsx(styles.navItem, categoryFilter === cat.name && styles.active)}
+                        className={clsx(
+                            styles.navItem,
+                            categoryFilter === cat.name && styles.active,
+                            dragOverIndex === index && dragIndex !== index && styles.dragOver
+                        )}
                         onClick={() => onSelectCategory(cat.name)}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
                     >
                         <DynamicIcon name={cat.icon} size={18} className={styles.icon} />
                         <span>{cat.name}</span>
