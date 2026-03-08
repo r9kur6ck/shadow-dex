@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Settings, Download, Upload, X, Plus, Trash2, Edit2, Check } from 'lucide-react';
+import { Settings, Download, Upload, X, Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import styles from './SettingsModal.module.css';
 import { db, PRESET_ICONS } from '../db/db';
 import type { Category } from '../db/db';
@@ -8,6 +8,7 @@ import DynamicIcon from './DynamicIcon';
 import clsx from 'clsx';
 import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
+import SyncModal from './SyncModal';
 
 interface SettingsModalProps {
     onClose: () => void;
@@ -15,7 +16,7 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [activeTab, setActiveTab] = useState<'data' | 'category'>('data');
+    const [expandedSection, setExpandedSection] = useState<'category' | 'sync' | 'backup' | 'storage' | null>('category');
 
     // Category management states
     const categories = useLiveQuery(() => db.categories.toArray()) || [];
@@ -35,7 +36,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             }
         };
         checkPersistence();
-    }, [activeTab]);
+    }, [expandedSection]);
 
     const handleExport = async () => {
         try {
@@ -204,6 +205,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         }
     };
 
+    const toggleSection = (section: 'category' | 'sync' | 'backup' | 'storage') => {
+        setExpandedSection(prev => prev === section ? null : section);
+    };
+
     return (
         <div className={styles.overlay} onClick={onClose}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -217,26 +222,137 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                     </button>
                 </div>
 
-                <div className={styles.tabs}>
-                    <button
-                        className={clsx(styles.tabBtn, activeTab === 'data' && styles.activeTab)}
-                        onClick={() => setActiveTab('data')}
-                    >
-                        データ管理
-                    </button>
-                    <button
-                        className={clsx(styles.tabBtn, activeTab === 'category' && styles.activeTab)}
-                        onClick={() => setActiveTab('category')}
-                    >
-                        カテゴリ設定
-                    </button>
-                </div>
-
                 <div className={styles.content}>
-                    {activeTab === 'data' && (
-                        <>
-                            <div className={styles.section}>
-                                <div className={styles.sectionTitle}>ストレージ保護（データ保全）</div>
+
+                    {/* Category Section (Accordion) */}
+                    <div className={styles.accordionGroup}>
+                        <button className={styles.accordionHeader} onClick={() => toggleSection('category')}>
+                            <div className={styles.accordionTitle}>カテゴリ設定</div>
+                            {expandedSection === 'category' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+                        {expandedSection === 'category' && (
+                            <div className={styles.accordionContent}>
+                                <div className={styles.sectionHeader}>
+                                    <div className={styles.sectionDesc}>カテゴリ名の編集やアイコンの変更、新規追加を行います。</div>
+                                    {!isCreating && !editingCatId && (
+                                        <button className={styles.addCatBtn} onClick={startCreateCategory}>
+                                            <Plus size={16} /> 追加
+                                        </button>
+                                    )}
+                                </div>
+
+                                {(isCreating || editingCatId) ? (
+                                    <div className={styles.catEditor}>
+                                        <input
+                                            type="text"
+                                            className={styles.catNameInput}
+                                            placeholder="カテゴリ名"
+                                            value={editName}
+                                            onChange={e => setEditName(e.target.value)}
+                                            autoFocus
+                                        />
+                                        <div className={styles.iconGrid}>
+                                            {PRESET_ICONS.map(icon => (
+                                                <button
+                                                    key={icon.id}
+                                                    className={clsx(styles.iconSelectBtn, editIcon === icon.id && styles.selectedIcon)}
+                                                    onClick={() => setEditIcon(icon.id)}
+                                                    title={icon.label}
+                                                >
+                                                    <DynamicIcon name={icon.id} size={20} />
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className={styles.editorActions}>
+                                            <button className={styles.cancelBtn} onClick={cancelEdit}>キャンセル</button>
+                                            <button className={styles.saveBtn} onClick={saveCategory} disabled={!editName.trim()}>
+                                                <Check size={16} /> 保存
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className={styles.catList}>
+                                        {categories.map(cat => (
+                                            <div key={cat.id} className={styles.catItem}>
+                                                <div className={styles.catItemName}>
+                                                    <DynamicIcon name={cat.icon} size={16} className={styles.catItemIcon} />
+                                                    <span>{cat.name}</span>
+                                                    {cat.isDefault && <span className={styles.defaultBadge}>標準</span>}
+                                                </div>
+                                                {!cat.isDefault && (
+                                                    <div className={styles.catItemActions}>
+                                                        <button onClick={() => startEditCategory(cat)} className={styles.iconBtn} title="編集">
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button onClick={() => deleteCategory(cat)} className={`${styles.iconBtn} ${styles.danger}`} title="削除">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Backup Section (Accordion) */}
+                    <div className={styles.accordionGroup}>
+                        <button className={styles.accordionHeader} onClick={() => toggleSection('backup')}>
+                            <div className={styles.accordionTitle}>バックアップと復元</div>
+                            {expandedSection === 'backup' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+                        {expandedSection === 'backup' && (
+                            <div className={styles.accordionContent}>
+                                <div className={styles.sectionDesc} style={{ marginBottom: '16px' }}>
+                                    現在の全データを暗号化ファイルとしてダウンロード（エクスポート）し、PCに保存します。また、保存したファイルからデータを復元することができます。
+                                </div>
+                                <div className={styles.section}>
+                                    <button className={`${styles.btn} ${styles.exportBtn}`} onClick={handleExport}>
+                                        <Download size={18} />
+                                        バックアップをダウンロード
+                                    </button>
+
+                                    <div className={styles.importWrapper}>
+                                        <button className={`${styles.btn} ${styles.importBtn}`}>
+                                            <Upload size={18} />
+                                            ファイルからデータを復元
+                                        </button>
+                                        <input
+                                            type="file"
+                                            className={styles.fileInput}
+                                            onChange={handleImport}
+                                            ref={fileInputRef}
+                                            title="ファイルを選択してください (.enc または .json)"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Sync Section (Accordion) */}
+                    <div className={styles.accordionGroup}>
+                        <button className={styles.accordionHeader} onClick={() => toggleSection('sync')}>
+                            <div className={styles.accordionTitle}>デバイス同期 (P2P)</div>
+                            {expandedSection === 'sync' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+                        {expandedSection === 'sync' && (
+                            <div className={styles.accordionContent}>
+                                <SyncModal />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Storage Protection Section (Accordion) */}
+                    <div className={styles.accordionGroup}>
+                        <button className={styles.accordionHeader} onClick={() => toggleSection('storage')}>
+                            <div className={styles.accordionTitle}>ストレージ保護（データ保全）</div>
+                            {expandedSection === 'storage' ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+                        {expandedSection === 'storage' && (
+                            <div className={styles.accordionContent}>
                                 <div className={styles.sectionDesc}>
                                     ブラウザの自動クリーンアップによってデータが削除されるのを防ぎます。
                                     <div style={{ marginTop: '8px', padding: '10px', borderRadius: 'var(--radius)', background: 'var(--sidebar-bg)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500 }}>
@@ -250,102 +366,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                                     </div>
                                 </div>
                             </div>
+                        )}
+                    </div>
 
-                            <div className={styles.section}>
-                                <div className={styles.sectionTitle}>バックアップと復元</div>
-                                <div className={styles.sectionDesc}>
-                                    現在の全データをJSONファイルとしてダウンロード（エクスポート）し、ローカルPCに保存します。また、保存したファイルからデータを復元（インポート）することができます。
-                                </div>
-                            </div>
-
-                            <div className={styles.section}>
-                                <button className={`${styles.btn} ${styles.exportBtn}`} onClick={handleExport}>
-                                    <Download size={18} />
-                                    バックアップをダウンロード
-                                </button>
-
-                                <div className={styles.importWrapper}>
-                                    <button className={`${styles.btn} ${styles.importBtn}`}>
-                                        <Upload size={18} />
-                                        ファイルからデータを復元
-                                    </button>
-                                    <input
-                                        type="file"
-                                        className={styles.fileInput}
-                                        onChange={handleImport}
-                                        ref={fileInputRef}
-                                        title="ファイルを選択してください (.enc または .json)"
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {activeTab === 'category' && (
-                        <div className={styles.section}>
-                            <div className={styles.sectionHeader}>
-                                <div className={styles.sectionTitle}>カテゴリ一覧</div>
-                                {!isCreating && !editingCatId && (
-                                    <button className={styles.addCatBtn} onClick={startCreateCategory}>
-                                        <Plus size={16} /> 追加
-                                    </button>
-                                )}
-                            </div>
-
-                            {(isCreating || editingCatId) ? (
-                                <div className={styles.catEditor}>
-                                    <input
-                                        type="text"
-                                        className={styles.catNameInput}
-                                        placeholder="カテゴリ名"
-                                        value={editName}
-                                        onChange={e => setEditName(e.target.value)}
-                                        autoFocus
-                                    />
-                                    <div className={styles.iconGrid}>
-                                        {PRESET_ICONS.map(icon => (
-                                            <button
-                                                key={icon.id}
-                                                className={clsx(styles.iconSelectBtn, editIcon === icon.id && styles.selectedIcon)}
-                                                onClick={() => setEditIcon(icon.id)}
-                                                title={icon.label}
-                                            >
-                                                <DynamicIcon name={icon.id} size={20} />
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div className={styles.editorActions}>
-                                        <button className={styles.cancelBtn} onClick={cancelEdit}>キャンセル</button>
-                                        <button className={styles.saveBtn} onClick={saveCategory} disabled={!editName.trim()}>
-                                            <Check size={16} /> 保存
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className={styles.catList}>
-                                    {categories.map(cat => (
-                                        <div key={cat.id} className={styles.catItem}>
-                                            <div className={styles.catItemName}>
-                                                <DynamicIcon name={cat.icon} size={16} className={styles.catItemIcon} />
-                                                <span>{cat.name}</span>
-                                                {cat.isDefault && <span className={styles.defaultBadge}>標準</span>}
-                                            </div>
-                                            {!cat.isDefault && (
-                                                <div className={styles.catItemActions}>
-                                                    <button onClick={() => startEditCategory(cat)} className={styles.iconBtn} title="編集">
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button onClick={() => deleteCategory(cat)} className={`${styles.iconBtn} ${styles.danger}`} title="削除">
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Trash2, User, FileText, Edit, Eye } from 'lucide-react';
+import { X, Save, Trash2, User, FileText, Edit, Eye, CheckSquare, List, Heading2, ListOrdered, Underline, Minus } from 'lucide-react';
 import styles from './EntryEditor.module.css';
 import { db } from '../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -30,11 +30,157 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
     const [initialContent, setInitialContent] = useState('');
     const [isLoaded, setIsLoaded] = useState(false);
 
+    const [vpHeight, setVpHeight] = useState(window.visualViewport?.height || window.innerHeight);
+    const [vpOffsetTop, setVpOffsetTop] = useState(window.visualViewport?.offsetTop || 0);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [isFocused, setIsFocused] = useState(false);
+
+    const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() =>
+        window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    );
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = (e: MediaQueryListEvent) => setSystemTheme(e.matches ? 'dark' : 'light');
+        mediaQuery.addEventListener('change', handler);
+        return () => mediaQuery.removeEventListener('change', handler);
+    }, []);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    useEffect(() => {
+        const handleVP = () => {
+            if (window.visualViewport) {
+                setVpHeight(window.visualViewport.height);
+                setVpOffsetTop(window.visualViewport.offsetTop);
+            }
+        };
+        handleVP();
+        window.visualViewport?.addEventListener('resize', handleVP);
+        window.visualViewport?.addEventListener('scroll', handleVP);
+        return () => {
+            window.visualViewport?.removeEventListener('resize', handleVP);
+            window.visualViewport?.removeEventListener('scroll', handleVP);
+        };
+    }, []);
+
+    const renderToolbarButtons = (className: string, style?: React.CSSProperties) => (
+        <div className={className} style={style}>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) editor.toggleStyles({ bold: true });
+                }}
+                title="太字"
+            >
+                <span style={{ fontWeight: 'bold' }}>B</span>
+            </button>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) editor.toggleStyles({ underline: true });
+                }}
+                title="アンダーライン"
+            >
+                <Underline size={18} />
+            </button>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) {
+                        const block = editor.getTextCursorPosition()?.block;
+                        if (block) editor.updateBlock(block, { type: 'heading', props: { level: 2 } });
+                    }
+                }}
+                title="見出し2"
+            >
+                <Heading2 size={18} />
+            </button>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) {
+                        const block = editor.getTextCursorPosition()?.block;
+                        if (block) editor.updateBlock(block, { type: 'bulletListItem' });
+                    }
+                }}
+                title="箇条書きリスト"
+            >
+                <List size={18} />
+            </button>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) {
+                        const block = editor.getTextCursorPosition()?.block;
+                        if (block) editor.updateBlock(block, { type: 'numberedListItem' });
+                    }
+                }}
+                title="番号付きリスト"
+            >
+                <ListOrdered size={18} />
+            </button>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) {
+                        const block = editor.getTextCursorPosition()?.block;
+                        if (block) editor.updateBlock(block, { type: 'checkListItem' });
+                    }
+                }}
+                title="チェックボックス"
+            >
+                <CheckSquare size={18} />
+            </button>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) {
+                        const currentBlock = editor.getTextCursorPosition()?.block;
+                        if (currentBlock) {
+                            editor.insertBlocks([{ type: 'divider' }], currentBlock, 'after');
+                            // 新しくブロックを追加したため、基本的にはその後にカーソルが合うか、もしくは別途明示的な処理をしない方が安全
+                        }
+                    }
+                }}
+                title="横罫線"
+            >
+                <Minus size={18} />
+            </button>
+            <button
+                className={styles.toolbarBtn}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                    if (editor) {
+                        editor.insertInlineContent([
+                            { type: "text", text: "@", styles: {} }
+                        ]);
+                    }
+                }}
+                title="別のノートを参照"
+            >
+                <span style={{ fontSize: '18px', fontWeight: 'bold' }}>@</span>
+            </button>
+        </div>
+    );
+
+
     useEffect(() => {
         if (!entryId && categories.length > 0 && !category) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setCategory(categories[0].name);
-             
+
             setIsLoaded(true);
         }
     }, [categories, entryId, category]);
@@ -76,7 +222,7 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
     const handleSave = async () => {
         if (!title.trim()) return;
 
-        const tags = tagsStr.split(',').map(t => t.trim()).filter(t => t);
+        const tags = tagsStr.split(/[,、]/).map(t => t.trim()).filter(t => t);
         const now = Date.now();
 
         if (entryId) {
@@ -175,8 +321,38 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                         )}
                     </div>
 
+                    {/* タグPill表示エリア（入力された文字をカンマ区切りで解析して表示） */}
+                    {tagsStr.trim() && (
+                        <div className={styles.tagPillContainer}>
+                            {tagsStr.split(/[,、]/).map(t => t.trim()).filter(t => t).map((tag, idx) => (
+                                <div key={idx} className={styles.tagPill}>
+                                    <span className={styles.tagPillText}>{tag}</span>
+                                    {isEditing && (
+                                        <button
+                                            type="button"
+                                            className={styles.tagPillDelete}
+                                            onClick={() => {
+                                                const currentTags = tagsStr.split(/[,、]/).map(t => t.trim()).filter(t => t);
+                                                currentTags.splice(idx, 1);
+                                                setTagsStr(currentTags.join(', '));
+                                            }}
+                                        >
+                                            <X size={12} />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     <div
                         className={`${styles.editorContainer} ${isEditing ? styles.editingMode : ''}`}
+                        onFocusCapture={() => setIsFocused(true)}
+                        onBlurCapture={(e) => {
+                            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                setIsFocused(false);
+                            }
+                        }}
                         onClick={(e) => {
                             const target = e.target as HTMLElement;
                             const anchor = target.closest('a');
@@ -206,7 +382,7 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                         {isLoaded && editor && (
                             <BlockNoteView
                                 editor={editor}
-                                theme="light" /* will be overridden by CSS variables if needed */
+                                theme={systemTheme}
                                 editable={isEditing}
                                 onChange={async () => {
                                     const markdown = await editor.blocksToMarkdownLossy(editor.document);
@@ -238,40 +414,6 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                                                 },
                                                 subtext: entry.category,
                                                 icon: entry.category === '人物メモ' ? <User size={18} /> : <FileText size={18} />
-                                            }));
-                                    }}
-                                />
-                                <SuggestionMenuController
-                                    triggerCharacter={"["}
-                                    getItems={async (query) => {
-                                        const cleanQuery = query.startsWith('[') ? query.slice(1) : query;
-                                        const entries = await db.entries.toArray();
-                                        return entries
-                                            .filter(e => e.title.toLowerCase().includes(cleanQuery.toLowerCase()))
-                                            .map(entry => ({
-                                                title: entry.title,
-                                                onItemClick: () => {
-                                                    // By default, SuggestionMenu only removes the query and its trigger `[`
-                                                    // We typed `[[` so we have to manually delete an extra `[` backwards before replacing
-                                                    editor.getExtension(SuggestionMenu)?.clearQuery();
-                                                    const pos = editor._tiptapEditor.state.selection.from;
-                                                    editor._tiptapEditor.commands.deleteRange({ from: pos - 1, to: pos });
-
-                                                    editor.insertInlineContent([
-                                                        {
-                                                            type: "link",
-                                                            href: `/entry/${entry.id}`,
-                                                            content: `[[${entry.title}]]`
-                                                        },
-                                                        {
-                                                            type: "text",
-                                                            text: " ",
-                                                            styles: {}
-                                                        }
-                                                    ]);
-                                                },
-                                                subtext: entry.category,
-                                                icon: <FileText size={18} />
                                             }));
                                     }}
                                 />
@@ -333,6 +475,9 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                     </div>
                 </div>
 
+                {/* PC Toolbar: above the footer */}
+                {isEditing && !isMobile && renderToolbarButtons(styles.toolbarPc)}
+
                 <div className={styles.footer}>
                     {isEditing ? (
                         <button onClick={handleSave} className={styles.primaryBtn}>
@@ -344,6 +489,12 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                     )}
                 </div>
             </div>
+
+            {/* Mobile Toolbar: floats above keyboard using visualViewport */}
+            {isEditing && isMobile && isFocused && renderToolbarButtons(styles.toolbarMobile, {
+                top: `${vpOffsetTop + vpHeight}px`,
+                transform: 'translateY(-100%)'
+            })}
         </div>
     );
 };

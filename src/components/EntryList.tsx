@@ -5,6 +5,8 @@ import { db } from '../db/db';
 import { format } from 'date-fns';
 import { FileText } from 'lucide-react';
 import type { Entry } from '../db/db';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface EntryListProps {
     searchQuery: string;
@@ -14,15 +16,14 @@ interface EntryListProps {
 
 const EMPTY_ENTRIES: Entry[] = [];
 
-const getPreviewText = (content: string) => {
+const getPreviewMarkdownText = (content: string) => {
     if (!content) return '';
-    // Strip markdown links and image tags, keeping the display text
-    let text = content.replace(/!?\[(.*?)\]\(.*?\)/g, '$1');
-    // Remove basic markdown syntax (headings, bold, italic, lists, quotes, code)
-    text = text.replace(/[#*`~>-]/g, '');
-    // Normalize line breaks and multiple spaces to a single space
-    text = text.replace(/\s+/g, ' ').trim();
-    return text.length > 150 ? text.substring(0, 150) + '...' : text;
+    const maxLength = 150;
+    const text = content.trim();
+    if (text.length > maxLength) {
+        return text.substring(0, maxLength) + '...';
+    }
+    return text;
 };
 
 const EntryList: React.FC<EntryListProps> = ({ searchQuery, categoryFilter, onSelectEntry }) => {
@@ -73,10 +74,17 @@ const EntryList: React.FC<EntryListProps> = ({ searchQuery, categoryFilter, onSe
                                 <h3 className={styles.cardTitle}>{entry.title}</h3>
                             </div>
                             <div className={styles.cardPreview}>
-                                {getPreviewText(entry.content)}
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {getPreviewMarkdownText(entry.content)}
+                                </ReactMarkdown>
                             </div>
                             <div className={styles.cardMeta}>
-                                <span className={styles.badge}>{entry.category}</span>
+                                <div className={styles.cardTagContainer}>
+                                    <span className={styles.badge}>{entry.category}</span>
+                                    {entry.tags.map((tag, idx) => (
+                                        <span key={idx} className={styles.cardTag}>{tag}</span>
+                                    ))}
+                                </div>
                                 <span className={styles.date}>{format(entry.updatedAt, 'yy/MM/dd HH:mm')}</span>
                             </div>
                         </div>

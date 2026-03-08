@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Smartphone, Monitor, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { Smartphone, Monitor, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import styles from './SyncModal.module.css';
 import { SyncManager, type SyncState } from '../sync/syncManager';
 
-interface SyncModalProps {
-    onClose: () => void;
+interface SyncViewProps {
+    onClose?: () => void;
 }
 
-const SyncModal: React.FC<SyncModalProps> = ({ onClose }) => {
+const SyncModal: React.FC<SyncViewProps> = ({ onClose }) => {
     const [activeTab, setActiveTab] = useState<'host' | 'guest'>('host');
     const [syncState, setSyncState] = useState<SyncState>('idle');
     const [errorMsg, setErrorMsg] = useState<string>('');
@@ -75,80 +75,82 @@ const SyncModal: React.FC<SyncModalProps> = ({ onClose }) => {
     };
 
     return (
-        <div className={styles.overlay}>
-            <div className={styles.modal}>
-                <div className={styles.header}>
-                    <h2 className={styles.title}>デバイス同期 (P2P)</h2>
-                    <button onClick={onClose} className={styles.closeBtn}><X size={20} /></button>
-                </div>
+        <div className={styles.syncContainer}>
 
-                {syncState === 'idle' || syncState === 'error' ? (
-                    <>
-                        <div className={styles.tabs}>
-                            <button
-                                className={`${styles.tab} ${activeTab === 'host' ? styles.activeTab : ''}`}
-                                onClick={() => setActiveTab('host')}
-                            >
-                                <Monitor size={18} />
-                                PC側 (QRを表示)
-                            </button>
-                            <button
-                                className={`${styles.tab} ${activeTab === 'guest' ? styles.activeTab : ''}`}
-                                onClick={() => setActiveTab('guest')}
-                            >
-                                <Smartphone size={18} />
-                                スマホ側 (QRを読む)
-                            </button>
-                        </div>
+            {syncState === 'idle' || syncState === 'error' ? (
+                <>
+                    <div className={styles.tabs}>
+                        <button
+                            className={`${styles.tab} ${activeTab === 'host' ? styles.activeTab : ''}`}
+                            onClick={() => setActiveTab('host')}
+                        >
+                            <Monitor size={18} />
+                            PC側 (QRを表示)
+                        </button>
+                        <button
+                            className={`${styles.tab} ${activeTab === 'guest' ? styles.activeTab : ''}`}
+                            onClick={() => setActiveTab('guest')}
+                        >
+                            <Smartphone size={18} />
+                            スマホ側 (QRを読む)
+                        </button>
+                    </div>
 
-                        <div className={styles.tabContent}>
-                            {activeTab === 'host' && (
-                                <div className={styles.hostView}>
-                                    <p className={styles.instruction}>
-                                        このデバイスのデータを他のデバイス（スマホなど）と同期します。<br />
-                                        下のボタンを押して、QRコードを生成してください。
-                                    </p>
-                                    <button className={styles.primaryBtn} onClick={handleStartHost}>
-                                        同期を開始する (QR表示)
-                                    </button>
-                                </div>
-                            )}
-
-                            {activeTab === 'guest' && (
-                                <div className={styles.guestView}>
-                                    <p className={styles.instruction}>
-                                        PC画面に表示されたQRコードをスキャンしてください。<br />
-                                        データは通信経路上で暗号化され、P2Pで直接同期されます。
-                                    </p>
-                                    <div className={styles.scannerWrapper}>
-                                        <Scanner
-                                            onScan={(result) => handleScanSuccess(result[0].rawValue)}
-                                            components={{ finder: true }}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        {renderStatus()}
-                    </>
-                ) : (
-                    <div className={styles.activeSyncView}>
-                        {syncState === 'waiting' && hostId && (
-                            <div className={styles.qrContainer}>
-                                <QRCodeSVG value={hostId} size={200} />
-                                <p className={styles.qrHint}>スマホでこのQRコードをスキャンしてください</p>
+                    <div className={styles.tabContent}>
+                        {activeTab === 'host' && (
+                            <div className={styles.hostView}>
+                                <p className={styles.instruction}>
+                                    このデバイスのデータを他のデバイス（スマホなど）と同期します。<br />
+                                    下のボタンを押して、QRコードを生成してください。
+                                </p>
+                                <button className={styles.primaryBtn} onClick={handleStartHost}>
+                                    同期を開始する (QR表示)
+                                </button>
                             </div>
                         )}
-                        {renderStatus()}
 
-                        {(String(syncState) === 'success' || String(syncState) === 'error') && (
-                            <button className={styles.primaryBtn} onClick={onClose} style={{ marginTop: 24 }}>
-                                閉じる
-                            </button>
+                        {activeTab === 'guest' && (
+                            <div className={styles.guestView}>
+                                <p className={styles.instruction}>
+                                    PC画面に表示されたQRコードをスキャンしてください。<br />
+                                    データは通信経路上で暗号化され、P2Pで直接同期されます。
+                                </p>
+                                <div className={styles.scannerWrapper}>
+                                    <Scanner
+                                        onScan={(result) => handleScanSuccess(result[0].rawValue)}
+                                        components={{ finder: true }}
+                                    />
+                                </div>
+                            </div>
                         )}
                     </div>
-                )}
-            </div>
+                    {renderStatus()}
+                </>
+            ) : (
+                <div className={styles.activeSyncView}>
+                    {syncState === 'waiting' && hostId && (
+                        <div className={styles.qrContainer}>
+                            <QRCodeSVG value={hostId} size={200} />
+                            <p className={styles.qrHint}>スマホでこのQRコードをスキャンしてください</p>
+                        </div>
+                    )}
+                    {renderStatus()}
+
+                    {(String(syncState) === 'success' || String(syncState) === 'error') && (
+                        <button className={styles.primaryBtn} onClick={() => {
+                            setSyncState('idle');
+                            setErrorMsg('');
+                            setHostId(null);
+                            if (syncManagerRef.current) {
+                                syncManagerRef.current.disconnect();
+                            }
+                            if (onClose) onClose();
+                        }} style={{ marginTop: 24 }}>
+                            リセット / 閉じる
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

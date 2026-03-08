@@ -133,6 +133,56 @@
     align-items: center;
 }
 
+.tagPillContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    margin-left: 120px;
+    /* .metaLabel の幅に合わせる */
+}
+
+@media (max-width: 768px) {
+    .tagPillContainer {
+        margin-left: 0;
+    }
+}
+
+.tagPill {
+    display: inline-flex;
+    align-items: center;
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    /* Pill shape */
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+}
+
+.tagPillText {
+    margin-right: 4px;
+}
+
+.tagPillDelete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.tagPillDelete:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
 .editorContainer {
     flex: 1;
     margin-top: 24px;
@@ -161,21 +211,6 @@
     font-family: inherit;
 }
 
-/* ダークモード対策：カスタム変数を BlockNote に引き渡すための簡易オーバーライド */
-@media (prefers-color-scheme: dark) {
-    .editorContainer {
-        --bn-colors-editor-background: var(--bg-color);
-        --bn-colors-editor-text: var(--text-color);
-        --bn-colors-menu-background: var(--bg-surface, #2f2f2f);
-        --bn-colors-menu-text: var(--text-color);
-        --bn-colors-tooltip-background: #191919;
-        --bn-colors-tooltip-text: #fff;
-        --bn-colors-hovered-text-background: var(--hover-bg);
-        --bn-colors-selected-text-background: rgba(46, 170, 220, 0.2);
-        --bn-colors-basic-marks-background: var(--hover-bg);
-        --bn-colors-basic-marks-text: var(--text-color);
-    }
-}
 
 .footer {
     padding: 16px 64px;
@@ -271,4 +306,63 @@
         padding: 12px;
         font-size: 16px;
     }
+}
+
+/* PC Toolbar */
+.toolbarPc {
+    display: flex;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    padding: 8px 12px;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+}
+
+.toolbarPc::-webkit-scrollbar {
+    display: none;
+}
+
+/* Mobile Toolbar - fixed right above keyboard */
+.toolbarMobile {
+    display: flex;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-color);
+    padding: 8px 12px;
+    gap: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+
+    position: fixed;
+    left: 0;
+    width: 100vw;
+    z-index: 9999;
+}
+
+.toolbarMobile::-webkit-scrollbar {
+    display: none;
+}
+
+.toolbarBtn {
+    background: transparent;
+    color: var(--text-color);
+    border: none;
+    border-radius: 6px;
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.toolbarBtn:active,
+.toolbarBtn:hover {
+    background: var(--hover-bg);
 }

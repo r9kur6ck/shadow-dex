@@ -44,14 +44,21 @@ const HelpModal: React.FC<HelpModalProps> = ({ onClose }) => {
                                     <p>スマホやPCの「ホーム画面に追加」から独立したアプリとして利用できます。</p>
                                 </div>
                             </li>
+                            <li>
+                                <Book size={16} className={styles.featureIcon} />
+                                <div>
+                                    <strong>モダンなエディタ機能</strong>
+                                    <p>見出しやリストなどのマークダウン入力対応。<code>@</code>を入力して別ノートへのリンクも簡単に行なえます。</p>
+                                </div>
+                            </li>
                         </ul>
                     </section>
 
                     <section className={styles.section}>
                         <h3>📖 使い方ガイド</h3>
                         <div className={styles.guideItem}>
-                            <h4>1. 新規作成</h4>
-                            <p>左下の「＋ 新規作成」ボタンから、エントリを追加します。カテゴリやタグを設定して整理しましょう。</p>
+                            <h4>1. 新規作成とタグ付け</h4>
+                            <p>左下の「＋ 新規作成」ボタンからエントリを追加します。カテゴリやタグ（カンマ、または読点区切りで入力）を設定して色別バッジで整理しましょう。</p>
                         </div>
                         <div className={styles.guideItem}>
                             <h4>2. 検索</h4>

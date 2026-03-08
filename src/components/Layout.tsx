@@ -4,7 +4,6 @@ import styles from './Layout.module.css';
 import EntryList from './EntryList';
 import SearchBar from './SearchBar';
 import EntryEditor from './EntryEditor';
-import SyncModal from './SyncModal';
 import SettingsModal from './SettingsModal';
 import HelpModal from './HelpModal';
 import { Menu, Plus } from 'lucide-react';
@@ -17,7 +16,6 @@ const Layout: React.FC = () => {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const [isSyncOpen, setIsSyncOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
 
@@ -53,10 +51,6 @@ const Layout: React.FC = () => {
                 }}
                 onNewEntry={() => {
                     handleOpenEditor();
-                    setIsSidebarOpen(false);
-                }}
-                onOpenSync={() => {
-                    setIsSyncOpen(true);
                     setIsSidebarOpen(false);
                 }}
                 onOpenSettings={() => {
@@ -107,10 +101,6 @@ const Layout: React.FC = () => {
                     entryId={selectedEntryId}
                     onClose={handleCloseEditor}
                 />
-            )}
-
-            {isSyncOpen && (
-                <SyncModal onClose={() => setIsSyncOpen(false)} />
             )}
 
             {isSettingsOpen && (

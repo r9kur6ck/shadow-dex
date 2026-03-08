@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import styles from './Sidebar.module.css';
-import { Book, Plus, Monitor, Smartphone, X, Settings, HelpCircle } from 'lucide-react';
+import { Book, Plus, X, Settings, HelpCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
@@ -10,14 +10,13 @@ interface SidebarProps {
     categoryFilter: string | null;
     onSelectCategory: (cat: string | null) => void;
     onNewEntry: () => void;
-    onOpenSync: () => void;
     onOpenSettings: () => void;
     onOpenHelp: () => void;
     isOpen?: boolean;
     onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onNewEntry, onOpenSync, onOpenSettings, onOpenHelp, isOpen, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onNewEntry, onOpenSettings, onOpenHelp, isOpen, onClose }) => {
     const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray()) || [];
 
     // Drag & Drop state
@@ -134,12 +133,7 @@ const Sidebar: React.FC<SidebarProps> = ({ categoryFilter, onSelectCategory, onN
                 </button>
                 <button className={styles.syncBtn} onClick={onOpenSettings}>
                     <Settings size={18} className={styles.icon} />
-                    <span>設定 / バックアップ</span>
-                </button>
-                <button className={styles.syncBtn} onClick={onOpenSync}>
-                    <Monitor size={18} className={styles.icon} />
-                    <Smartphone size={16} className={styles.icon} style={{ marginRight: 6 }} />
-                    <span>デバイス同期</span>
+                    <span>設定・ツール</span>
                 </button>
                 <button className={styles.newBtn} onClick={onNewEntry}>
                     <Plus size={18} />

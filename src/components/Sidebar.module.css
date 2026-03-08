@@ -180,6 +180,9 @@
         height: 100dvh;
         transform: translateX(-100%);
         box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);
+        background-color: rgba(var(--bg-surface-rgb, 255, 255, 255), 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
     }
 
     .sidebar.open {
