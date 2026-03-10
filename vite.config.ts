@@ -33,7 +33,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5000000 // Raise the limit to 5MB for BlockNote chunks
+        maximumFileSizeToCacheInBytes: 25000000 // Raise the limit to 25MB for WASM and BlockNote chunks
       }
     })
   ],

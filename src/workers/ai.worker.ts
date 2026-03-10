@@ -1,6 +1,12 @@
 import { pipeline, env, FeatureExtractionPipeline } from '@xenova/transformers';
 import { db } from '../db/db';
 
+// Import WASM files explicitly as raw URLs so Vite copies them to the dist/assets folder
+import wasmUrl from 'onnxruntime-web/dist/ort-wasm.wasm?url';
+import wasmThreadedUrl from 'onnxruntime-web/dist/ort-wasm-threaded.wasm?url';
+import wasmSimdUrl from 'onnxruntime-web/dist/ort-wasm-simd.wasm?url';
+import wasmSimdThreadedUrl from 'onnxruntime-web/dist/ort-wasm-simd-threaded.wasm?url';
+
 // Skip local model check since we are using browser cache
 env.allowLocalModels = false;
 env.useBrowserCache = true;
@@ -8,6 +14,14 @@ env.useBrowserCache = true;
 // Fix for Cloudflare and other environments lacking SharedArrayBuffer
 env.backends.onnx.wasm.numThreads = 1;
 env.backends.onnx.wasm.proxy = false; // Disable proxy to ensure it doesn't try to spawn threads
+
+// Explicitly provide all WASM URLs to ONNX Runtime so it doesn't try to fetch from jsdelivr/CDN
+env.backends.onnx.wasm.wasmPaths = {
+    'ort-wasm.wasm': wasmUrl,
+    'ort-wasm-threaded.wasm': wasmThreadedUrl,
+    'ort-wasm-simd.wasm': wasmSimdUrl,
+    'ort-wasm-simd-threaded.wasm': wasmSimdThreadedUrl
+};
 
 // Define message types
 export type WorkerMessage =
