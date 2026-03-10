@@ -7,8 +7,10 @@ import wasmThreadedUrl from 'onnxruntime-web/dist/ort-wasm-threaded.wasm?url';
 import wasmSimdUrl from 'onnxruntime-web/dist/ort-wasm-simd.wasm?url';
 import wasmSimdThreadedUrl from 'onnxruntime-web/dist/ort-wasm-simd-threaded.wasm?url';
 
-// Skip local model check since we are using browser cache
-env.allowLocalModels = false;
+// Force using the locally downloaded model files from the public folder to bypass HuggingFace CORS on Cloudflare
+env.allowLocalModels = true;
+env.allowRemoteModels = false;
+env.localModelPath = '/models/';
 env.useBrowserCache = true;
 
 // Fix for Cloudflare and other environments lacking SharedArrayBuffer
