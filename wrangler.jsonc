@@ -2,7 +2,9 @@
     "$schema": "node_modules/wrangler/config-schema.json",
     "name": "shadow-dex",
     "compatibility_date": "2026-02-26",
+    "main": "worker/index.ts",
     "assets": {
-        "directory": "./dist"
+        "directory": "./dist",
+        "binding": "ASSETS"
     }
 }
