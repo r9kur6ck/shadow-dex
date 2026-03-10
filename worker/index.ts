@@ -40,7 +40,15 @@ export default {
             }
         }
 
-        // For all other requests, pass through to static assets (handled by Cloudflare Assets with SPA fallback)
-        return env.ASSETS.fetch(request);
+        // For all other requests, try serving static assets
+        const assetResponse = await env.ASSETS.fetch(request);
+        if (assetResponse.status !== 404) {
+            return assetResponse;
+        }
+
+        // SPA fallback: serve index.html for client-side routing
+        const fallbackUrl = new URL(request.url);
+        fallbackUrl.pathname = '/index.html';
+        return env.ASSETS.fetch(new Request(fallbackUrl.toString(), request));
     },
 };
