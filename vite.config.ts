@@ -38,6 +38,7 @@ export default defineConfig({
     })
   ],
   build: {
+    copyPublicDir: false,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -48,6 +49,13 @@ export default defineConfig({
     }
   },
   server: {
-    host: true
+    host: true,
+    proxy: {
+      '/hf-proxy': {
+        target: 'https://huggingface.co',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/hf-proxy/, '')
+      }
+    }
   }
 })

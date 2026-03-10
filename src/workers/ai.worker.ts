@@ -7,10 +7,11 @@ import wasmThreadedUrl from 'onnxruntime-web/dist/ort-wasm-threaded.wasm?url';
 import wasmSimdUrl from 'onnxruntime-web/dist/ort-wasm-simd.wasm?url';
 import wasmSimdThreadedUrl from 'onnxruntime-web/dist/ort-wasm-simd-threaded.wasm?url';
 
-// Force using the locally downloaded model files from the public folder to bypass HuggingFace CORS on Cloudflare
-env.allowLocalModels = true;
-env.allowRemoteModels = false;
-env.localModelPath = '/models/';
+// Force using the hf-proxy to bypass HuggingFace CORS on Cloudflare
+env.allowLocalModels = false;
+env.allowRemoteModels = true;
+env.remoteHost = ''; // Relative to the current origin
+env.remotePathTemplate = '/hf-proxy/{model}/resolve/{revision}/';
 env.useBrowserCache = true;
 
 // Fix for Cloudflare and other environments lacking SharedArrayBuffer
