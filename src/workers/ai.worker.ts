@@ -5,6 +5,9 @@ import { db } from '../db/db';
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
+// Fix for Cloudflare and other environments lacking SharedArrayBuffer
+env.backends.onnx.wasm.numThreads = 1;
+
 // Define message types
 export type WorkerMessage =
     | { type: 'INIT' }
