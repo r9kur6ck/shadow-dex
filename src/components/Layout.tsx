@@ -7,9 +7,13 @@ import EntryEditor from './EntryEditor';
 import SettingsModal from './SettingsModal';
 import HelpModal from './HelpModal';
 import { Menu, Plus } from 'lucide-react';
+import { useAI } from '../hooks/useAI';
+
 const Layout: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+    const [semanticResults, setSemanticResults] = useState<any[]>([]);
+    const { searchSemantic, status } = useAI();
 
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
@@ -40,6 +44,21 @@ const Layout: React.FC = () => {
         window.addEventListener('open-entry', handleOpenEntryEvent);
         return () => window.removeEventListener('open-entry', handleOpenEntryEvent);
     }, []);
+
+    // Semantic search effect
+    useEffect(() => {
+        if (!searchQuery.trim() || status !== 'ready') {
+            setSemanticResults([]);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(async () => {
+            const results = await searchSemantic(searchQuery);
+            setSemanticResults(results);
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, searchSemantic, status]);
 
     return (
         <div className={styles.layout}>
@@ -83,6 +102,7 @@ const Layout: React.FC = () => {
                     <EntryList
                         searchQuery={searchQuery}
                         categoryFilter={categoryFilter}
+                        semanticResults={semanticResults}
                         onSelectEntry={(id) => handleOpenEditor(id)}
                     />
                 </div>
