@@ -40,7 +40,7 @@ export default {
             }
         }
 
-        // For all other requests, fall through to static assets
+        // For all other requests, pass through to static assets (handled by Cloudflare Assets with SPA fallback)
         return env.ASSETS.fetch(request);
     },
 };
