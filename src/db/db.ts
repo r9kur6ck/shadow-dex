@@ -8,7 +8,6 @@ export interface Entry {
   content: string;
   createdAt: number;
   updatedAt: number;
-  embedding?: number[]; // Vector embedding for semantic search
 }
 
 export interface Category {
@@ -71,12 +70,6 @@ db.version(3).stores({
   for (let i = 0; i < categories.length; i++) {
     await tx.table('categories').update(categories[i].id, { sortOrder: i });
   }
-});
-
-// Version 4 Schema (Added embedding field for semantic search)
-db.version(4).stores({
-  entries: 'id, title, category, *tags, createdAt, updatedAt',
-  categories: 'id, name, icon, sortOrder'
 });
 
 // Populate default categories on first db creation

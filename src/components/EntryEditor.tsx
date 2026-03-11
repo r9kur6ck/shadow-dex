@@ -8,7 +8,6 @@ import { useCreateBlockNote, SuggestionMenuController, LinkToolbarController } f
 import { BlockNoteView } from '@blocknote/mantine';
 import { SuggestionMenu } from '@blocknote/core/extensions';
 import '@blocknote/mantine/style.css';
-import { useAI } from '../hooks/useAI';
 
 import type { Category } from '../db/db';
 
@@ -39,9 +38,6 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
     const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() =>
         window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     );
-
-    const { getRelated, status } = useAI();
-    const [relatedEntries, setRelatedEntries] = useState<any[]>([]);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -201,12 +197,8 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
                 }
                 setIsLoaded(true);
             });
-
-            if (status === 'ready') {
-                getRelated(entryId).then(res => setRelatedEntries(res));
-            }
         }
-    }, [entryId, status, getRelated]);
+    }, [entryId]);
 
     // Create the editor instance. We wait for `isLoaded` to ensure we have the correct 
     // initialContent before instantiating, to avoid empty editors on edit.
@@ -485,34 +477,6 @@ const EntryEditor: React.FC<EntryEditorProps> = ({ entryId, onClose }) => {
 
                 {/* PC Toolbar: above the footer */}
                 {isEditing && !isMobile && renderToolbarButtons(styles.toolbarPc)}
-
-                {/* AI Related Entries (View Mode Only) */}
-                {!isEditing && relatedEntries.length > 0 && (
-                    <div style={{ padding: '0 24px 24px', borderTop: '1px solid var(--border)', paddingTop: '24px', marginTop: '24px' }}>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FileText size={16} style={{ color: '#8b5cf6' }} />
-                            関連エントリ（AI）
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {relatedEntries.map(rel => (
-                                <div
-                                    key={rel.id}
-                                    style={{
-                                        padding: '12px', background: 'var(--bg-card)',
-                                        borderRadius: '8px', cursor: 'pointer',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                        border: '1px solid var(--border)'
-                                    }}
-                                    onClick={() => {
-                                        window.dispatchEvent(new CustomEvent('open-entry', { detail: { id: rel.id } }));
-                                    }}
-                                >
-                                    <div style={{ fontWeight: 600, fontSize: '15px' }}>{rel.title}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 <div className={styles.footer}>
                     {isEditing ? (
