@@ -154,7 +154,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
             // Hybrid search: combine vector similarity with keyword matching
             const VECTOR_WEIGHT = 0.7;
             const KEYWORD_WEIGHT = 0.3;
-            const MIN_SCORE_THRESHOLD = 0.3; // Filter out irrelevant results
+            const MIN_SCORE_THRESHOLD = 0.5; // Filter out irrelevant results (e5-small scores 0.3-0.5 for unrelated content)
 
             const scored = entries
                 .filter((e) => e.embedding && e.embedding.length > 0)
