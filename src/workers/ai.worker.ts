@@ -134,7 +134,8 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
 
             for (let i = 0; i < missing.length; i++) {
                 const entry = missing[i];
-                const textToEmbed = `title: ${entry.title} tags: ${entry.tags.join(',')} content: ${entry.content}`;
+                // e5 models require "passage: " prefix for documents
+                const textToEmbed = `passage: ${entry.title} ${entry.tags.join(' ')} ${entry.content}`;
                 const embedding = await getEmbedding(textToEmbed);
 
                 await db.entries.update(entry.id, { embedding });
@@ -148,15 +149,20 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
             self.postMessage({ type: 'GENERATE_COMPLETE' });
         }
         else if (data.type === 'SEMANTIC_SEARCH') {
+            // Skip AI search for very short queries (single chars like "あ")
+            if (data.query.trim().length < 2) {
+                self.postMessage({ type: 'SEARCH_RESULT', results: [] });
+                return;
+            }
+
             const queryVec = await getEmbedding(`query: ${data.query}`);
             const entries = await db.entries.toArray();
 
             // Hybrid search: combine vector similarity with keyword matching
             const VECTOR_WEIGHT = 0.7;
             const KEYWORD_WEIGHT = 0.3;
-            const MIN_SCORE_THRESHOLD = 0.5; // Filter out irrelevant results (e5-small scores 0.3-0.5 for unrelated content)
 
-            const scored = entries
+            const allScored = entries
                 .filter((e) => e.embedding && e.embedding.length > 0)
                 .map((e) => {
                     const vecScore = cosineSimilarity(queryVec, e.embedding!);
@@ -167,11 +173,20 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
                         score: vecScore * VECTOR_WEIGHT + kwScore * KEYWORD_WEIGHT,
                     };
                 })
-                .filter((e) => e.score >= MIN_SCORE_THRESHOLD)
-                .sort((a, b) => b.score - a.score)
-                .slice(0, data.limit || 10);
+                .sort((a, b) => b.score - a.score);
 
-            self.postMessage({ type: 'SEARCH_RESULT', results: scored });
+            // Adaptive threshold: use the mean score as baseline noise floor
+            // Only return results that are meaningfully above the average
+            let results = allScored;
+            if (allScored.length > 1) {
+                const meanScore = allScored.reduce((sum, e) => sum + e.score, 0) / allScored.length;
+                const threshold = Math.max(0.5, meanScore + 0.05);
+                results = allScored.filter((e) => e.score >= threshold);
+            } else if (allScored.length === 1 && allScored[0].score < 0.5) {
+                results = [];
+            }
+
+            self.postMessage({ type: 'SEARCH_RESULT', results: results.slice(0, data.limit || 10) });
         }
         else if (data.type === 'GET_RELATED') {
             const target = await db.entries.get(data.targetId);
