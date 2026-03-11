@@ -130,7 +130,8 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
         }
         else if (data.type === 'GENERATE_MISSING') {
             const entries = await db.entries.toArray();
-            const missing = entries.filter((e) => !e.embedding || e.embedding.length === 0);
+            // Regenerate all embeddings to ensure passage: prefix is applied
+            const missing = entries;
 
             for (let i = 0; i < missing.length; i++) {
                 const entry = missing[i];
@@ -175,15 +176,13 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
                 })
                 .sort((a, b) => b.score - a.score);
 
-            // Adaptive threshold: use the mean score as baseline noise floor
-            // Only return results that are meaningfully above the average
-            let results = allScored;
-            if (allScored.length > 1) {
-                const meanScore = allScored.reduce((sum, e) => sum + e.score, 0) / allScored.length;
-                const threshold = Math.max(0.5, meanScore + 0.05);
-                results = allScored.filter((e) => e.score >= threshold);
-            } else if (allScored.length === 1 && allScored[0].score < 0.5) {
-                results = [];
+            // Filter: keep results above absolute minimum AND within reasonable range of top score
+            const MIN_ABSOLUTE = 0.35;
+            let results = allScored.filter((e) => e.score >= MIN_ABSOLUTE);
+            if (results.length > 1) {
+                const topScore = results[0].score;
+                // Only keep results within 80% of top score to filter noise
+                results = results.filter((e) => e.score >= topScore * 0.8);
             }
 
             self.postMessage({ type: 'SEARCH_RESULT', results: results.slice(0, data.limit || 10) });
