@@ -45,7 +45,7 @@ export type WorkerResponse =
 
 class PIPELINE_SINGLETON {
     static task = 'feature-extraction';
-    static model = 'Xenova/multilingual-e5-small';
+    static model = 'Xenova/multilingual-e5-large';
     static instance: Promise<FeatureExtractionPipeline> | null = null;
 
     static async getInstance(progress_callback?: (info: any) => void) {
@@ -70,44 +70,8 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// Keyword matching score for hybrid search
-function keywordScore(query: string, title: string, tags: string[], content: string): number {
-    const q = query.toLowerCase().trim();
-    if (!q) return 0;
-
-    const titleLower = title.toLowerCase();
-    const tagsLower = tags.join(' ').toLowerCase();
-    const contentLower = content.toLowerCase();
-
-    let score = 0;
-
-    // Title match (highest weight)
-    if (titleLower.includes(q)) score += 0.6;
-    // Tag match
-    if (tagsLower.includes(q)) score += 0.25;
-    // Content match
-    if (contentLower.includes(q)) score += 0.15;
-
-    // Also check individual words for multi-word queries
-    const words = q.split(/\s+/).filter(w => w.length > 0);
-    if (words.length > 1) {
-        let wordHits = 0;
-        for (const word of words) {
-            if (titleLower.includes(word) || tagsLower.includes(word) || contentLower.includes(word)) {
-                wordHits++;
-            }
-        }
-        const wordScore = (wordHits / words.length) * 0.5;
-        score = Math.max(score, wordScore);
-    }
-
-    return Math.min(score, 1.0);
-}
-
 async function getEmbedding(text: string): Promise<number[]> {
     const extractor = await PIPELINE_SINGLETON.getInstance();
-    // Provide input exactly as required by e5 models: "query: ..." or "passage: ..."
-    // For simplicity, we just use the text.
     const output = await extractor(text, { pooling: 'mean', normalize: true });
     return Array.from(output.data);
 }
@@ -130,11 +94,11 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
         }
         else if (data.type === 'GENERATE_MISSING') {
             const entries = await db.entries.toArray();
-            // Regenerate all embeddings to ensure passage: prefix is applied
-            const missing = entries;
+            // Regenerate all embeddings (model changed)
+            const toProcess = entries;
 
-            for (let i = 0; i < missing.length; i++) {
-                const entry = missing[i];
+            for (let i = 0; i < toProcess.length; i++) {
+                const entry = toProcess[i];
                 // e5 models require "passage: " prefix for documents
                 const textToEmbed = `passage: ${entry.title} ${entry.tags.join(' ')} ${entry.content}`;
                 const embedding = await getEmbedding(textToEmbed);
@@ -144,48 +108,35 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
                 self.postMessage({
                     type: 'GENERATE_PROGRESS',
                     current: i + 1,
-                    total: missing.length,
+                    total: toProcess.length,
                 });
             }
             self.postMessage({ type: 'GENERATE_COMPLETE' });
         }
         else if (data.type === 'SEMANTIC_SEARCH') {
-            // Skip AI search for very short queries (single chars like "あ")
+            // Skip AI search for very short queries
             if (data.query.trim().length < 2) {
                 self.postMessage({ type: 'SEARCH_RESULT', results: [] });
                 return;
             }
 
+            // e5 models require "query: " prefix for queries
             const queryVec = await getEmbedding(`query: ${data.query}`);
             const entries = await db.entries.toArray();
 
-            // Hybrid search: combine vector similarity with keyword matching
-            const VECTOR_WEIGHT = 0.7;
-            const KEYWORD_WEIGHT = 0.3;
-
-            const allScored = entries
+            // Pure cosine similarity — rely on the model's quality
+            const scored = entries
                 .filter((e) => e.embedding && e.embedding.length > 0)
-                .map((e) => {
-                    const vecScore = cosineSimilarity(queryVec, e.embedding!);
-                    const kwScore = keywordScore(data.query, e.title, e.tags || [], e.content || '');
-                    return {
-                        id: e.id,
-                        title: e.title,
-                        score: vecScore * VECTOR_WEIGHT + kwScore * KEYWORD_WEIGHT,
-                    };
-                })
-                .sort((a, b) => b.score - a.score);
+                .map((e) => ({
+                    id: e.id,
+                    title: e.title,
+                    score: cosineSimilarity(queryVec, e.embedding!),
+                }))
+                .filter((e) => e.score > 0.5)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, data.limit || 10);
 
-            // Filter: keep results above absolute minimum AND within reasonable range of top score
-            const MIN_ABSOLUTE = 0.4;
-            let results = allScored.filter((e) => e.score >= MIN_ABSOLUTE);
-            if (results.length > 1) {
-                const topScore = results[0].score;
-                // Only keep results within 85% of top score to filter noise
-                results = results.filter((e) => e.score >= topScore * 0.85);
-            }
-
-            self.postMessage({ type: 'SEARCH_RESULT', results: results.slice(0, data.limit || 10) });
+            self.postMessage({ type: 'SEARCH_RESULT', results: scored });
         }
         else if (data.type === 'GET_RELATED') {
             const target = await db.entries.get(data.targetId);
