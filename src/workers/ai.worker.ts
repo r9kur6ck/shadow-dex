@@ -70,6 +70,40 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+// Keyword matching score for hybrid search
+function keywordScore(query: string, title: string, tags: string[], content: string): number {
+    const q = query.toLowerCase().trim();
+    if (!q) return 0;
+
+    const titleLower = title.toLowerCase();
+    const tagsLower = tags.join(' ').toLowerCase();
+    const contentLower = content.toLowerCase();
+
+    let score = 0;
+
+    // Title match (highest weight)
+    if (titleLower.includes(q)) score += 0.6;
+    // Tag match
+    if (tagsLower.includes(q)) score += 0.25;
+    // Content match
+    if (contentLower.includes(q)) score += 0.15;
+
+    // Also check individual words for multi-word queries
+    const words = q.split(/\s+/).filter(w => w.length > 0);
+    if (words.length > 1) {
+        let wordHits = 0;
+        for (const word of words) {
+            if (titleLower.includes(word) || tagsLower.includes(word) || contentLower.includes(word)) {
+                wordHits++;
+            }
+        }
+        const wordScore = (wordHits / words.length) * 0.5;
+        score = Math.max(score, wordScore);
+    }
+
+    return Math.min(score, 1.0);
+}
+
 async function getEmbedding(text: string): Promise<number[]> {
     const extractor = await PIPELINE_SINGLETON.getInstance();
     // Provide input exactly as required by e5 models: "query: ..." or "passage: ..."
@@ -117,13 +151,21 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
             const queryVec = await getEmbedding(`query: ${data.query}`);
             const entries = await db.entries.toArray();
 
+            // Hybrid search: combine vector similarity with keyword matching
+            const VECTOR_WEIGHT = 0.7;
+            const KEYWORD_WEIGHT = 0.3;
+
             const scored = entries
                 .filter((e) => e.embedding && e.embedding.length > 0)
-                .map((e) => ({
-                    id: e.id,
-                    title: e.title,
-                    score: cosineSimilarity(queryVec, e.embedding!),
-                }))
+                .map((e) => {
+                    const vecScore = cosineSimilarity(queryVec, e.embedding!);
+                    const kwScore = keywordScore(data.query, e.title, e.tags || [], e.content || '');
+                    return {
+                        id: e.id,
+                        title: e.title,
+                        score: vecScore * VECTOR_WEIGHT + kwScore * KEYWORD_WEIGHT,
+                    };
+                })
                 .sort((a, b) => b.score - a.score)
                 .slice(0, data.limit || 10);
 

@@ -56,5 +56,14 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/hf-proxy/, '')
       }
     }
+  },
+  preview: {
+    proxy: {
+      '/hf-proxy': {
+        target: 'https://huggingface.co',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/hf-proxy/, '')
+      }
+    }
   }
 })
