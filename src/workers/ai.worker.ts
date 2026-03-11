@@ -177,12 +177,12 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
                 .sort((a, b) => b.score - a.score);
 
             // Filter: keep results above absolute minimum AND within reasonable range of top score
-            const MIN_ABSOLUTE = 0.35;
+            const MIN_ABSOLUTE = 0.4;
             let results = allScored.filter((e) => e.score >= MIN_ABSOLUTE);
             if (results.length > 1) {
                 const topScore = results[0].score;
-                // Only keep results within 80% of top score to filter noise
-                results = results.filter((e) => e.score >= topScore * 0.8);
+                // Only keep results within 85% of top score to filter noise
+                results = results.filter((e) => e.score >= topScore * 0.85);
             }
 
             self.postMessage({ type: 'SEARCH_RESULT', results: results.slice(0, data.limit || 10) });
