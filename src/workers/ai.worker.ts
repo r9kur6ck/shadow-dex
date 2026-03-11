@@ -154,6 +154,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
             // Hybrid search: combine vector similarity with keyword matching
             const VECTOR_WEIGHT = 0.7;
             const KEYWORD_WEIGHT = 0.3;
+            const MIN_SCORE_THRESHOLD = 0.3; // Filter out irrelevant results
 
             const scored = entries
                 .filter((e) => e.embedding && e.embedding.length > 0)
@@ -166,6 +167,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerMessage>) => {
                         score: vecScore * VECTOR_WEIGHT + kwScore * KEYWORD_WEIGHT,
                     };
                 })
+                .filter((e) => e.score >= MIN_SCORE_THRESHOLD)
                 .sort((a, b) => b.score - a.score)
                 .slice(0, data.limit || 10);
 
